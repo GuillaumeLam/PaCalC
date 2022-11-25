@@ -9,6 +9,8 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 import sys
 import tensorflow as tf
+import warnings
+warnings.filterwarnings('ignore')
 
 seed(39)
 
@@ -30,6 +32,9 @@ seed(39)
 # -silence warning if no issue w/ real data
 
 def partic_calib_curve(model, P_X, P_Y, seed=39):
+	model_cpy = keras_base_model(model)		# TODO move up the chain, in dsts_cv => impacts the model
+	weight_chkpnt = model.get_weights()
+
 	f1_lim_threshold=5
 	per_label_dict, min_cycles = perLabelDict(P_X, P_Y) # do stats w/ min_cycles?
 
@@ -53,7 +58,7 @@ def partic_calib_curve(model, P_X, P_Y, seed=39):
 
 		# train model on 1..n gait cycles & eval on else
 		for i in range(len(X_tr)):
-			model_cpy = keras_model_cpy(model)
+			model_cpy.set_weights(weight_chkpnt)
 			
 			if i > 0:
 
@@ -206,8 +211,6 @@ def graph_calib_curve_per_Y(curves, p_id=None):
 		elif i == 7:
 			plt.xlabel('Calibration size')
 
-	# plt.xscale('symlog')
-
 	plt.figlegend()
 	plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
@@ -341,10 +344,14 @@ def perParticipantDict(X, Y, P):
 
 	return participants_dict
 
-def keras_model_cpy(model):
+def keras_base_model(model):
 	model_cpy = tf.keras.models.clone_model(model)
 	model_cpy.build(model.input.shape)
 	model_cpy.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+	
+	return model
+
+def keras_model_cpy(model):
 	model_cpy.set_weights(model.get_weights())
 
 	return model_cpy

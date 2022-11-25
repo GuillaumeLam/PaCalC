@@ -13,8 +13,10 @@ TODO:
 Sections:
 This Paper:
 - Generate Dataset
-- Run Fast Version
-- Run Full Version
+- Run Versions
+	-Fast
+	-Med
+	-Paper
 Your Paper:
 - Exportable Code & Tests + main is good example how to use methods
 - Extra Speed: Caching Mechanism
