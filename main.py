@@ -173,7 +173,7 @@ def fast_version():
 
 	print('Select a P_id:')
 
-	print(D.keys())
+	# print(D.keys())
 
 	p_id = 15
 
@@ -224,7 +224,7 @@ if __name__ == "__main__":
 
 	
 	if args.version == 'fast':
-		fast_version()				# ~3-4min	1x1
+		fast_version()				# ~5min		1x1
 	elif args.version == 'med':		#   V x4	
 		med_version()				# ~15min	2x2=4
 	elif args.version == 'paper':	#   V x4	
