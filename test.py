@@ -9,10 +9,10 @@ from tensorflow.keras.layers import Dense
 from load_data import load_surface_data, _CACHED_load_surface_data
 
 # exported methods
-from PaCalC import partic_calib_curve, all_partic_calib_curve
-from PaCalC import pcc_cv, all_pcc_cv
+from util_functions import partic_calib_curve, all_partic_calib_curve
+from util_functions import pcc_cv, all_pcc_cv
 
-import manuscript_exp_func as PaCalC
+import util_functions as PaCalC
 
 # ==========
 # dataset for tests

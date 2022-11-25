@@ -13,7 +13,7 @@ import tensorflow as tf
 seed(39)
 
 #======================>
-#  Exported Functions  >
+#  Utility Functions  >
 #======================>
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -180,7 +180,7 @@ def all_pcc_cv(model,X,Y,P, cv=2):
 #	-F1 vs C_tr curves; dim: n x |unique(Y)| x max(|C_tr|)
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def graph_calib_curve_per_Y(curves):
+def graph_calib_curve_per_Y(curves, p_id=None):
 
 	# get from dataset/labels.npy
 	text_labels = pickle.load(open('graph/Irregular_Surface_labels.pkl','rb'))
@@ -206,9 +206,15 @@ def graph_calib_curve_per_Y(curves):
 		elif i == 7:
 			plt.xlabel('Calibration size')
 
+	# plt.xscale('symlog')
+
 	plt.figlegend()
 	plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-	plt.suptitle('F1 vs calibration size per surface types')
+
+	if p_id is None:
+		plt.suptitle('Averaged F1 vs calibration size per surface types')
+	else:
+		plt.suptitle(f'Averaged F1 vs calibration size per surface types for P_id:{p_id}')
 
 	plt.show()
 
@@ -219,7 +225,7 @@ def graph_calib_curve_per_Y(curves):
 #	-F1 vs C_tr curves; dim: n x |unique(Y)| x max(|C_tr|)
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def graph_calib_curve_general(curves):
+def graph_calib_curve_general(curves, p_id=None):
 	# TODO: re-gen. these numbers with large # of folds
 	# take sw & rw as input
 	sw, rw = pickle.load(open('graph/sw-rw_F1_per_label.pkl','rb'))
@@ -239,8 +245,13 @@ def graph_calib_curve_general(curves):
 	plt.ylabel('F1')
 	plt.xlabel('Calibration size')
 
+	plt.xscale('symlog')
+
 	plt.legend(loc='lower right')
-	plt.title('F1 vs calibration set size')
+	if p_id is None:
+		plt.title('Averaged F1 vs calibration set size with log x-axis')
+	else:
+		plt.title(f'F1 vs calibration set size for P_id:{p_id}')
 
 	plt.show()
 
