@@ -32,14 +32,23 @@ seed(39)
 # -silence warning if no issue w/ real data
 
 def partic_calib_curve(model, P_X, P_Y, seed=39):
-	model_cpy = keras_base_model(model)		# TODO move up the chain, in dsts_cv => impacts the model
-	weight_chkpnt = model.get_weights()
-
-	f1_lim_threshold=5
+	# model_cpy = keras_base_model(model)		# TODO move up the chain, in dsts_cv => impacts the model
+	# weight_chkpnt = model.get_weights()
+	# model_cpy.set_weights(weight_chkpnt)
+	f1_lim_threshold=7
 	per_label_dict, min_cycles = perLabelDict(P_X, P_Y) # do stats w/ min_cycles?
 
+	# if len(per_label_dict.keys()) <9: # check shape out of model matches shape of Y
+	# 	print('Missing some labels')
+	# 	print(per_label_dict.keys())
+	# 	print('[ERROR] SIZE MISSMATCH')
+	# 	print('P_Y:', P_Y.shape)
+
+	# 	pickle.dump(P_Y, open('error_missmatch_P_Y.pkl','wb'))
+
+	# 	return None
+
 	f1_curves_per_label = []
-	n_labels = len(per_label_dict.keys())
 
 	i = 1
 
@@ -47,7 +56,16 @@ def partic_calib_curve(model, P_X, P_Y, seed=39):
 
 	nl_counter = 0
 
+	callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=3)
 	for pos_y, X in per_label_dict.items():
+
+		print(X)
+
+		if X.size == 0:
+			# empty list ie. no gait cycles for selected label
+			f1_curves_per_label.append([np.nan])
+			continue
+
 		Y = [0]*n_labels
 		Y[pos_y] = 1
 		Y = np.array([Y]*X.shape[0])
@@ -58,19 +76,17 @@ def partic_calib_curve(model, P_X, P_Y, seed=39):
 
 		# train model on 1..n gait cycles & eval on else
 		for i in range(len(X_tr)):
-			model_cpy.set_weights(weight_chkpnt)
 			
 			if i > 0:
+				model.fit(X_tr[i-1:i],Y_tr[i-1:i], epochs=50,batch_size=1, verbose=0, callbacks=[callback])
 
-				CX = X_tr[:i]
-				CY = Y_tr[:i]
-
-				model_cpy.fit(CX, CY, epochs=50,batch_size=1, verbose=0)
-
-			mult_pred = model_cpy.predict(X_te, verbose=0)
+			mult_pred = model.predict(X_te, verbose=0)
 
 			y_hat = np.zeros_like(mult_pred)
 			y_hat[np.arange(len(mult_pred)), mult_pred.argmax(1)] = 1
+
+			print('Shape of calibration test set:', Y_te.shape)
+			print('Shape of predicted calibration test set:', y_hat.shape)
 
 			report_dict = classification_report(Y_te, y_hat, target_names=list(range(n_labels)), output_dict=True)
 
@@ -89,6 +105,7 @@ def partic_calib_curve(model, P_X, P_Y, seed=39):
 		print(f'Iteration of label completed {nl_counter}/{n_labels}={nl_counter/n_labels*100}%')
 		print('='*30)
 
+	# add frq of lengths to running counter, check if group of ppl stand out ie. what are the chances that variations are due to error
 	f1_matrix = pad_last_dim(f1_curves_per_label)
 
 	return f1_matrix
@@ -132,13 +149,32 @@ def pcc_cv(model, P_X, P_Y, cv=2):
 # -return p_id with associated min_cycles in dict
 
 def all_partic_calib_curve(model,X,Y,P,seed=39):
+	model_cpy = keras_base_model(model)		# TODO move up the chain, in dsts_cv => impacts the model
+	weight_chkpnt = model.get_weights()
+	
 	participants_data = perParticipantDict(X, Y, P)
 
 	participants_curves = {}
 
 	# repeat partic_calib_curve over all participant
 	for i,p_id in enumerate(participants_data.keys()):
+		# model_cpy.set_weights(weight_chkpnt)
 		participants_curves[p_id] = partic_calib_curve(model,*participants_data[p_id],seed)
+		
+		# if participants_curves[p_id] is None:
+		# 	print('[ERROR] Size missmatch')
+		# 	print('P id:', p_id)
+		# 	P_X, P_Y = participants_data[p_id]
+		# 	print('P_X:',P_X.shape)
+		# 	print('P_Y:',P_Y.shape)
+		# 	print('='*10)
+		# 	print('X:',X.shape)
+		# 	print('Y:',Y.shape)
+		# 	print('P:',P.shape)
+		# 	print('='*10)
+
+		# 	raise ValueError('Size missmatch btwn data and model output')
+
 		print('='*30)
 		print(f'P progress: {i+1}/{len(participants_data.keys())}={(i+1)/len(participants_data.keys())*100}%')
 		print(f'\nCalibration Curve Computed for P:{p_id}\n')
@@ -241,7 +277,7 @@ def graph_calib_curve_general(curves, p_id=None):
 	rw_avg_f1 = np.mean(rw_avg_f1_l)
 	rw_std_f1 = np.std(rw_avg_f1_l)
 
-	f1_Ctr_avged_l = np.mean(curves, axis=1)
+	f1_Ctr_avged_l = np.nanmean(curves, axis=1)
 
 	standard_F1_Ctr_graph(f1_Ctr_avged_l, ((sw_avg_f1,sw_std_f1),(rw_avg_f1,rw_std_f1)))
 
@@ -280,10 +316,13 @@ def graph_calib_curve_general(curves, p_id=None):
 def perLabelDict(P_X, P_Y):
 	label_dict = {}
 
+	for i in range(P_Y.shape[-1]):
+		label_dict[i] = []
+
 	for i, OHE_y in enumerate(P_Y):
 		pos_y = np.array(OHE_y).argmax()
-		if not pos_y in label_dict:
-			label_dict[pos_y] = []
+		# if not pos_y in label_dict:
+		# 	label_dict[pos_y] = []
 
 		label_dict[pos_y].append(P_X[i])
 
@@ -356,14 +395,22 @@ def keras_model_cpy(model):
 
 	return model_cpy
 
-# curve: n x |unique(Y)| x |max(C_tr)|
+# curve: n x |max(C_tr)|
 # sw_rw: ((sw_avg_f1, sw_std_f1),(rw_avg_f1, rw_std_f1))
 def standard_F1_Ctr_graph(curve, sw_rw, title_label=None, sw_rw_labels=True):
-	# graph main curve with std
-	avg_calib_f1 = np.mean(curve, axis=0)
-	std_calib_f1 = np.std(curve, axis=0)
-
 	x_axis = list(range(curve.shape[-1]))
+
+	print('STANDARD GRAPHING')
+
+	print(curve)
+
+	curve = curve[~np.isnan(curve).any(axis=1)]
+
+	print(curve)
+
+	avg_calib_f1 = np.nanmean(curve, axis=0)
+	std_calib_f1 = np.nanstd(curve, axis=0)
+
 
 	plt.plot(avg_calib_f1)
 

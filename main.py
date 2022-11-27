@@ -19,7 +19,11 @@ import tensorflow as tf
 #	-look into f1 of 1.0 very early, even for test data...? => rounding errors?, data leaking?, WRONG LABEL (no trials => 100%)
 # 		-silence PaCalC keras calib warnings
 
-def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False):
+def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False):
+	save_path = f'graph/PaCalC(dtst_seed={dtst_seed},calib_seed={calib_seed}).pkl'
+	if os.path.exists(save_path):
+		return save_path
+
 	global _cached_Irregular_Surface_Dataset
 	_cached_Irregular_Surface_Dataset=None
 
@@ -28,7 +32,8 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False):
 	ann = make_model(X_tr, Y_tr)
 
 	# train model on X_tr, Y_tr
-	ann.fit(X_tr,Y_tr,batch_size=512,epochs=50, validation_split=0.1)
+	if not disable_base_train:
+		ann.fit(X_tr,Y_tr,batch_size=512,epochs=50, validation_split=0.1)
 
 	#=================
 	D = PaCalC.all_partic_calib_curve(ann, X_te, Y_te, P_te, calib_seed)
@@ -44,16 +49,23 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False):
 	if save:
 		if not os.path.exists('graph'):
    			os.makedirs('graph')
-		pickle.dump(D, open(f'graph/PaCalC(dtst_seed={dtst_seed},calib_seed={calib_seed}).pkl','wb'))
+		pickle.dump(D, open(save_path,'wb'))
+
+	return save_path
 
 # dtst_cv => multiple dataset subj-split seeds; will calib on diff participant
 # calib_cv => multiple calibration rnd-split seeds; will calib on same participants with diff gait cycles
 def PaCalC_F1_cv(dtst_cv=4, calib_cv=4, save=False):
+	# save_path = f'graph/PaCalC(dtst_cv={dtst_cv},calib_cv={calib_cv}).pkl'
+	save_path = 'tmp'
+	if os.path.exists(save_path):
+		return save_path
+
 	dtst_seeds = [randint(0,1000) for _ in range(0,dtst_cv)]
 
 	out = {}
 
-	for dtst_seed in dtst_seeds:
+	for i, dtst_seed in enumerate(dtst_seeds):
 		global _cached_Irregular_Surface_Dataset
 		_cached_Irregular_Surface_Dataset=None
 
@@ -81,7 +93,8 @@ def PaCalC_F1_cv(dtst_cv=4, calib_cv=4, save=False):
 				out[p_id].append(m)
 
 		print('='*30)
-		print('\nDataset Fold Completed\n')
+		print(f'Seed progress: {i+1}/{dtst_cv}={(i+1)/dtst_cv*100}%')
+		print(f'\nDataset Fold Completed for seed:{dtst_cv}\n')
 		print('='*30)
 
 	# pad dict entries
@@ -93,7 +106,9 @@ def PaCalC_F1_cv(dtst_cv=4, calib_cv=4, save=False):
 	if save:
 		if not os.path.exists('graph'):
    			os.makedirs('graph')
-		pickle.dump(out, open(f'graph/PaCalC(dtst_cv={dtst_cv},calib_cv={calib_cv}).pkl','wb'))
+		pickle.dump(out, open(save_path,'wb'))
+
+	return save_path
 
 
 def make_model(X_tr, Y_tr):
@@ -157,16 +172,24 @@ def graph_per_P(run_loc):
 		PaCalC.graph_calib_curve_per_Y(p_curves, p_id)
 
 def fast_version():
-	run_loc = 'graph/PaCalC(dtst_seed=214,calib_seed=39).pkl'
+	single_version()
 
-	try:
-		D = pickle.load(open(run_loc,'rb'))
-	except:
-		s = time.time()
-		PaCalC_F1(save=True)
-		e = time.time()
+def med_version():
+	high_tier_version()
 
-		print('TIME of PaCalC_F1:'+str(e-s)+'s')
+def paper_version():
+	high_tier_version(dtst_cv=4, calib_cv=4)
+
+def minimal_base_train_needed():
+	single_version(disable_base_train=True) # model can master indiv's
+
+
+def single_version(dtst_seed=214, calib_seed=39):
+	s = time.time()
+	run_loc = PaCalC_F1(dtst_seed=dtst_seed, calib_seed=calib_seed,save=True)
+	e = time.time()
+
+	print('TIME of PaCalC_F1:'+str(e-s)+'s')
 
 	main_graph_avg_P(run_loc)
 	per_label_graph_avg_P(run_loc)
@@ -182,40 +205,66 @@ def fast_version():
 	main_graph_indiv_P(run_loc, p_id)
 	per_label_graph_indiv_P(run_loc, p_id)
 
-def med_version():
-	run_loc = 'graph/PaCalC(dtst_cv=2,calib_cv=2).pkl'
+def high_tier_version(dtst_cv=2, calib_cv=2):
+	s = time.time()
+	run_loc = PaCalC_F1_cv(dtst_cv=dtst_cv, calib_cv=calib_cv, save=True)
+	e = time.time()
 
-	try:
-		D = pickle.load(open(run_loc,'rb'))
-	except:
-		s = time.time()
-		PaCalC_F1_cv(dtst_cv=2, calib_cv=2, save=True)
-		e = time.time()
-
-		print('TIME of PaCalC_F1_cv(d-cv=2,c-cv=2):'+str(e-s)+'s')
+	print(f'TIME of PaCalC_F1_cv(d-cv={dtst_cv},c-cv={calib_cv}):'+str(e-s)+'s')
 
 	main_graph_avg_P(run_loc)
 	per_label_graph_avg_P(run_loc)
 
 	graph_per_P(run_loc)
 
-def paper_version():
-	run_loc = 'graph/PaCalC(dtst_cv=4,calib_cv=4).pkl'
 
-	try:
-		D = pickle.load(open(run_loc,'rb'))
-	except:
-		s = time.time()
-		PaCalC_F1_cv(dtst_cv=4, calib_cv=4, save=True)
-		e = time.time()
+def test_P_missing_labels():
+	P_X, P_Y = np.random.rand(50,100), np.array([[1,0,0,0,0,0,0,0,0]]*25+[[0,1,0,0,0,0,0,0,0]]*25)
 
-		print('TIME of PaCalC_F1_cv(d-cv=4,c-cv=4):'+str(e-s)+'s')
+	model = tf.keras.models.Sequential()
+	model.add(tf.keras.layers.Dense(32, input_dim=100, activation='relu'))
+	model.add(tf.keras.layers.Dense(16, activation='relu'))
+	model.add(tf.keras.layers.Dense(P_Y.shape[-1], activation='softmax'))
+	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-	main_graph_avg_P(run_loc)
-	per_label_graph_avg_P(run_loc)
+	matrix = PaCalC.partic_calib_curve(model, P_X, P_Y)
 
-	graph_per_P(run_loc)
+	print('HERE')
+	print(matrix)
 
+	matrix = np.array([matrix])
+	
+	PaCalC.graph_calib_curve_general(matrix)
+
+	PaCalC.graph_calib_curve_per_Y(matrix)
+
+def test_all_missing_labels():
+	X, Y, P = np.random.rand(50,100), np.array([[1,0,0,0,0,0,0,0,0]]*25+[[0,1,0,0,0,0,0,0,0]]*25), np.array([1,2,3,4,5]*10)
+
+	model = tf.keras.models.Sequential()
+	model.add(tf.keras.layers.Dense(32, input_dim=100, activation='relu'))
+	model.add(tf.keras.layers.Dense(16, activation='relu'))
+	model.add(tf.keras.layers.Dense(Y.shape[-1], activation='softmax'))
+	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+	d = PaCalC.all_partic_calib_curve(model, X, Y, P)
+
+	print('HERE')
+	# print(matrix)
+
+	# matrix = np.array([matrix])
+
+	matrix = PaCalC.collapse_P(d)
+
+	PaCalC.graph_calib_curve_general(matrix)
+
+	PaCalC.graph_calib_curve_per_Y(matrix)
+
+	for p_id, p_curves in d.items():
+		print(f'P id: {p_id}')
+		# p_curves = np.array([p_curves])
+		PaCalC.graph_calib_curve_general(np.array([p_curves]), p_id)
+		PaCalC.graph_calib_curve_per_Y(np.array([p_curves]), p_id)
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
@@ -224,11 +273,14 @@ if __name__ == "__main__":
 
 	
 	if args.version == 'fast':
-		fast_version()				# ~5min		1x1
+		fast_version()				# ~Xmin		1x1
 	elif args.version == 'med':		#   V x4	
-		med_version()				# ~15min	2x2=4
+		med_version()				# ~XXmin	2x2=4
 	elif args.version == 'paper':	#   V x4	
 		paper_version()				# est. ~1h	4x4=16
+	elif args.version == 'test':
+		# high_tier_version(dtst_cv=4, calib_cv=1)
+		test_all_missing_labels()
 	else:
 		print('Must select version: `-v [fast, med, paper]`')
 

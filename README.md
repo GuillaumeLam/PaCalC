@@ -9,6 +9,7 @@ TODO:
 -cpy dataset/readme.md to here
 -fix relative path error in dataset/src/py-cmptbl_mat_to_npy.py
 -{other tasks sprinkled throughout files}
+-add weight checkpointing for either full checkpointing or no check pointing ie. no weight modification
 
 Sections:
 This Paper:
