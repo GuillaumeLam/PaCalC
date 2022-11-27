@@ -127,7 +127,7 @@ def PaCalC_F1_cv(dtst_cv=4, calib_cv=4, save=False):
 
 		print('='*30)
 		print(f'Seed progress: {i+1}/{dtst_cv}={(i+1)/dtst_cv*100}%')
-		print(f'\nDataset Fold Completed for seed:{dtst_cv}\n')
+		print(f'\nDataset Fold Completed for seed:{dtst_seed}\n')
 		print('='*30)
 
 	# pad dict entries

@@ -75,9 +75,6 @@ def partic_calib_curve(model, P_X, P_Y, seed=39):
 			y_hat = np.zeros_like(mult_pred)
 			y_hat[np.arange(len(mult_pred)), mult_pred.argmax(1)] = 1
 
-			print('Shape of calibration test set:', Y_te.shape)
-			print('Shape of predicted calibration test set:', y_hat.shape)
-
 			report_dict = classification_report(Y_te, y_hat, target_names=list(range(n_labels)), output_dict=True)
 
 			f1_curve.append(report_dict[pos_y]['f1-score'])
