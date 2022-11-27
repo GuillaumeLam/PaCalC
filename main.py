@@ -36,6 +36,23 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 		ann.fit(X_tr,Y_tr,batch_size=512,epochs=50, validation_split=0.1)
 
 	#=================
+	# Get SW curve
+	#=================
+	mult_pred = ann.predict(X_te, verbose=0)
+
+	y_hat = np.zeros_like(mult_pred)
+	y_hat[np.arange(len(mult_pred)), mult_pred.argmax(1)] = 1
+
+	report_dict = classification_report(Y_te, y_hat, target_names=list(range(9)), output_dict=True)
+	
+	sw_f1_per_label = []
+	for i in range(9):
+		sw_f1_per_label.append(report_dict[i]['f1-score'])
+	print(sw_f1_per_label)
+	print(np.mean(sw_f1_per_label))
+	#=================
+
+	#=================
 	D = PaCalC.all_partic_calib_curve(ann, X_te, Y_te, P_te, calib_seed)
 	#=================
 	# or single participant
@@ -49,21 +66,22 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 	if save:
 		if not os.path.exists('graph'):
    			os.makedirs('graph')
-		pickle.dump(D, open(save_path,'wb'))
+		pickle.dump((D, np.array([sw_f1_per_label])), open(save_path,'wb'))
 
 	return save_path
 
 # dtst_cv => multiple dataset subj-split seeds; will calib on diff participant
 # calib_cv => multiple calibration rnd-split seeds; will calib on same participants with diff gait cycles
 def PaCalC_F1_cv(dtst_cv=4, calib_cv=4, save=False):
-	# save_path = f'graph/PaCalC(dtst_cv={dtst_cv},calib_cv={calib_cv}).pkl'
-	save_path = 'tmp'
+	save_path = f'graph/PaCalC(dtst_cv={dtst_cv},calib_cv={calib_cv}).pkl'
+	# save_path = 'tmp'
 	if os.path.exists(save_path):
 		return save_path
 
 	dtst_seeds = [randint(0,1000) for _ in range(0,dtst_cv)]
 
 	out = {}
+	sw = []
 
 	for i, dtst_seed in enumerate(dtst_seeds):
 		global _cached_Irregular_Surface_Dataset
@@ -75,6 +93,24 @@ def PaCalC_F1_cv(dtst_cv=4, calib_cv=4, save=False):
 
 		# train model on X_tr, Y_tr
 		ann.fit(X_tr,Y_tr,batch_size=512,epochs=50, validation_split=0.1)
+
+		#=================
+		# Get SW curve
+		#=================
+		mult_pred = ann.predict(X_te, verbose=0)
+
+		y_hat = np.zeros_like(mult_pred)
+		y_hat[np.arange(len(mult_pred)), mult_pred.argmax(1)] = 1
+
+		report_dict = classification_report(Y_te, y_hat, target_names=list(range(9)), output_dict=True)
+		
+		sw_f1_per_label = []
+		for i in range(9):
+			sw_f1_per_label.append(report_dict[i]['f1-score'])
+		print(sw_f1_per_label)
+		print(np.mean(sw_f1_per_label))
+		sw.append(sw_f1_per_label)
+		#=================
 
 		#=================
 		D = PaCalC.all_pcc_cv(ann, X_te, Y_te, P_te, cv=calib_cv)
@@ -106,7 +142,7 @@ def PaCalC_F1_cv(dtst_cv=4, calib_cv=4, save=False):
 	if save:
 		if not os.path.exists('graph'):
    			os.makedirs('graph')
-		pickle.dump(out, open(save_path,'wb'))
+		pickle.dump((out, sw), open(save_path,'wb'))
 
 	return save_path
 
@@ -130,18 +166,18 @@ def make_model(X_tr, Y_tr):
 
 # TODO: return of graph to save
 def main_graph_avg_P(run_loc):
-	D = pickle.load(open(run_loc,'rb'))
+	D,sw = pickle.load(open(run_loc,'rb'))
 
 	curves = PaCalC.collapse_P(D)
 
-	PaCalC.graph_calib_curve_general(curves)
+	PaCalC.graph_calib_curve_general(curves, sw=sw)
 
 def per_label_graph_avg_P(run_loc):
-	D = pickle.load(open(run_loc,'rb'))
+	D,sw = pickle.load(open(run_loc,'rb'))
 
 	curves = PaCalC.collapse_P(D)
 
-	PaCalC.graph_calib_curve_per_Y(curves)
+	PaCalC.graph_calib_curve_per_Y(curves, sw=sw)
 
 def main_graph_indiv_P(run_loc, p_id):
 	D = pickle.load(open(run_loc,'rb'))
@@ -164,24 +200,24 @@ def per_label_graph_indiv_P(run_loc, p_id):
 	PaCalC.graph_calib_curve_per_Y(p_curves, p_id)
 
 def graph_per_P(run_loc):
-	D = pickle.load(open(run_loc,'rb'))
+	D, sw = pickle.load(open(run_loc,'rb'))
 
 	for p_id, p_curves in D.items():
 		print(f'P id: {p_id}')
-		PaCalC.graph_calib_curve_general(p_curves, p_id)
-		PaCalC.graph_calib_curve_per_Y(p_curves, p_id)
+		PaCalC.graph_calib_curve_general(p_curves, p_id, sw=sw)
+		PaCalC.graph_calib_curve_per_Y(p_curves, p_id, sw=sw)
 
 def fast_version():
 	single_version()
 
 def med_version():
-	high_tier_version()
+	high_tier_version(dtst_cv=2, calib_cv=2)
 
 def paper_version():
 	high_tier_version(dtst_cv=4, calib_cv=4)
 
 def minimal_base_train_needed():
-	single_version(disable_base_train=True) # model can master indiv's
+	single_version(disable_base_train=True) # model can master indiv's with no inital training
 
 
 def single_version(dtst_seed=214, calib_seed=39):
@@ -229,11 +265,11 @@ def test_P_missing_labels():
 
 	matrix = PaCalC.partic_calib_curve(model, P_X, P_Y)
 
-	print('HERE')
-	print(matrix)
+	# print('HERE')
+	# print(matrix)
 
 	matrix = np.array([matrix])
-	
+
 	PaCalC.graph_calib_curve_general(matrix)
 
 	PaCalC.graph_calib_curve_per_Y(matrix)
@@ -249,7 +285,7 @@ def test_all_missing_labels():
 
 	d = PaCalC.all_partic_calib_curve(model, X, Y, P)
 
-	print('HERE')
+	# print('HERE')
 	# print(matrix)
 
 	# matrix = np.array([matrix])

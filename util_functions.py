@@ -59,7 +59,7 @@ def partic_calib_curve(model, P_X, P_Y, seed=39):
 	callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=3)
 	for pos_y, X in per_label_dict.items():
 
-		print(X)
+		# print(X)
 
 		if X.size == 0:
 			# empty list ie. no gait cycles for selected label
@@ -221,17 +221,21 @@ def all_pcc_cv(model,X,Y,P, cv=2):
 #	-F1 vs C_tr curves; dim: n x |unique(Y)| x max(|C_tr|)
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def graph_calib_curve_per_Y(curves, p_id=None):
+def graph_calib_curve_per_Y(curves, p_id=None, sw=None):
 
 	# get from dataset/labels.npy
 	text_labels = pickle.load(open('graph/Irregular_Surface_labels.pkl','rb'))
 
-	# TODO: re-gen. these numbers with large # of folds
-	# take sw & rw as input
-	sw, rw = pickle.load(open('graph/sw-rw_F1_per_label.pkl','rb'))
+	if sw is None:
+		sw, rw = pickle.load(open('graph/sw-rw_F1_per_label.pkl','rb'))
 
-	sw_avg_f1_l, sw_std_f1_l = sw
-	rw_avg_f1_l, rw_std_f1_l = rw
+		sw_avg_f1_l, sw_std_f1_l = sw
+		rw_avg_f1_l, rw_std_f1_l = rw
+	else:
+		sw_avg_f1_l, sw_std_f1_l = np.mean(sw,axis=0), np.std(sw,axis=0)
+
+		_,rw = pickle.load(open('graph/sw-rw_F1_per_label.pkl','rb'))
+		rw_avg_f1_l, rw_std_f1_l = rw
 
 	for i, surface_label in enumerate(text_labels):
 		plt.subplot(3,3,i+1)
@@ -264,18 +268,30 @@ def graph_calib_curve_per_Y(curves, p_id=None):
 #	-F1 vs C_tr curves; dim: n x |unique(Y)| x max(|C_tr|)
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def graph_calib_curve_general(curves, p_id=None):
+def graph_calib_curve_general(curves, p_id=None, sw=None):
 	# TODO: re-gen. these numbers with large # of folds
 	# take sw & rw as input
-	sw, rw = pickle.load(open('graph/sw-rw_F1_per_label.pkl','rb'))
+	if sw is None:
+		sw, rw = pickle.load(open('graph/sw-rw_F1_per_label.pkl','rb'))
 
-	sw_avg_f1_l, _ = sw
-	rw_avg_f1_l, _ = rw
+		sw_avg_f1_l, _ = sw
+		rw_avg_f1_l, _ = rw
 
-	sw_avg_f1 = np.mean(sw_avg_f1_l)
-	sw_std_f1 = np.std(sw_avg_f1_l)
-	rw_avg_f1 = np.mean(rw_avg_f1_l)
-	rw_std_f1 = np.std(rw_avg_f1_l)
+		sw_avg_f1 = np.mean(sw_avg_f1_l)
+		sw_std_f1 = np.std(sw_avg_f1_l)
+		rw_avg_f1 = np.mean(rw_avg_f1_l)
+		rw_std_f1 = np.std(rw_avg_f1_l)
+	else:
+		sw = np.mean(sw,axis=0)
+		sw_avg_f1 = np.mean(sw)
+		sw_std_f1 = np.std(sw)
+
+		_,rw = pickle.load(open('graph/sw-rw_F1_per_label.pkl','rb'))
+
+		rw_avg_f1_l, _ = rw
+		rw_avg_f1 = np.mean(rw_avg_f1_l)
+		rw_std_f1 = np.std(rw_avg_f1_l)
+	
 
 	f1_Ctr_avged_l = np.nanmean(curves, axis=1)
 
@@ -288,7 +304,7 @@ def graph_calib_curve_general(curves, p_id=None):
 
 	plt.legend(loc='lower right')
 	if p_id is None:
-		plt.title('Averaged F1 vs calibration set size with log x-axis')
+		plt.title('Averaged F1 (lin) vs calibration set size (log)') 
 	else:
 		plt.title(f'F1 vs calibration set size for P_id:{p_id}')
 
@@ -400,13 +416,13 @@ def keras_model_cpy(model):
 def standard_F1_Ctr_graph(curve, sw_rw, title_label=None, sw_rw_labels=True):
 	x_axis = list(range(curve.shape[-1]))
 
-	print('STANDARD GRAPHING')
+	# print('STANDARD GRAPHING')
 
-	print(curve)
+	# print(curve)
 
 	curve = curve[~np.isnan(curve).any(axis=1)]
 
-	print(curve)
+	# print(curve)
 
 	avg_calib_f1 = np.nanmean(curve, axis=0)
 	std_calib_f1 = np.nanstd(curve, axis=0)
