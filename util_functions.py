@@ -38,16 +38,6 @@ def partic_calib_curve(model, P_X, P_Y, seed=39):
 	f1_lim_threshold=7
 	per_label_dict, min_cycles = perLabelDict(P_X, P_Y) # do stats w/ min_cycles?
 
-	# if len(per_label_dict.keys()) <9: # check shape out of model matches shape of Y
-	# 	print('Missing some labels')
-	# 	print(per_label_dict.keys())
-	# 	print('[ERROR] SIZE MISSMATCH')
-	# 	print('P_Y:', P_Y.shape)
-
-	# 	pickle.dump(P_Y, open('error_missmatch_P_Y.pkl','wb'))
-
-	# 	return None
-
 	f1_curves_per_label = []
 
 	i = 1
@@ -160,20 +150,6 @@ def all_partic_calib_curve(model,X,Y,P,seed=39):
 	for i,p_id in enumerate(participants_data.keys()):
 		# model_cpy.set_weights(weight_chkpnt)
 		participants_curves[p_id] = partic_calib_curve(model,*participants_data[p_id],seed)
-		
-		# if participants_curves[p_id] is None:
-		# 	print('[ERROR] Size missmatch')
-		# 	print('P id:', p_id)
-		# 	P_X, P_Y = participants_data[p_id]
-		# 	print('P_X:',P_X.shape)
-		# 	print('P_Y:',P_Y.shape)
-		# 	print('='*10)
-		# 	print('X:',X.shape)
-		# 	print('Y:',Y.shape)
-		# 	print('P:',P.shape)
-		# 	print('='*10)
-
-		# 	raise ValueError('Size missmatch btwn data and model output')
 
 		print('='*30)
 		print(f'P progress: {i+1}/{len(participants_data.keys())}={(i+1)/len(participants_data.keys())*100}%')

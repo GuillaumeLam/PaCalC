@@ -15,9 +15,6 @@ from sklearn.metrics import f1_score
 import time
 import tensorflow as tf
 
-# TODO: 
-#	-look into f1 of 1.0 very early, even for test data...? => rounding errors?, data leaking?, WRONG LABEL (no trials => 100%)
-# 		-silence PaCalC keras calib warnings
 
 def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False):
 	save_path = f'graph/PaCalC(dtst_seed={dtst_seed},calib_seed={calib_seed}).pkl'
@@ -156,13 +153,6 @@ def make_model(X_tr, Y_tr):
 	ann=Lab.ANN(hid_layers=hid_layers,model=model,output=output,input_shape=input_shape,activation_hid='relu') # relu in hidden layers
 	return ann
 
-# def load_sw_rw(model, cv):
-# 	try:
-# 		sw, rw = pickle.load(open('graph/sw-rw_F1_per_label.pkl','rb'))
-# 	except:
-# 		# generate numbers with sw & rw
-
-# 	return sw, rw
 
 # TODO: return of graph to save
 def main_graph_avg_P(run_loc):
@@ -265,9 +255,6 @@ def test_P_missing_labels():
 
 	matrix = PaCalC.partic_calib_curve(model, P_X, P_Y)
 
-	# print('HERE')
-	# print(matrix)
-
 	matrix = np.array([matrix])
 
 	PaCalC.graph_calib_curve_general(matrix)
@@ -284,11 +271,6 @@ def test_all_missing_labels():
 	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 	d = PaCalC.all_partic_calib_curve(model, X, Y, P)
-
-	# print('HERE')
-	# print(matrix)
-
-	# matrix = np.array([matrix])
 
 	matrix = PaCalC.collapse_P(d)
 
@@ -319,13 +301,3 @@ if __name__ == "__main__":
 		test_all_missing_labels()
 	else:
 		print('Must select version: `-v [fast, med, paper]`')
-
-	# PaCalC_F1(save=True)
-	# print('GREAT SUCCESS !'*5)
-	# PaCalC_F1_cv(save=True)
-	# print('GREAT SUCCESS !!'*5)
-
-	# main_graph_avg_P()
-	# per_label_graph_avg_P()
-	# main_graph_indiv_P()
-	# per_label_graph_indiv_P()
