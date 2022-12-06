@@ -40,4 +40,4 @@ for p=1:numel(ids)
 end
 
 disp('data saved to py_compatible_data.mat')
-save('../py_compatible_data.mat', 'simplified_data');
+save('../py_compatible_data.mat', 'gait_ireg_surface_dataset');
