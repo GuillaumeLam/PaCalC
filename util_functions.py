@@ -13,13 +13,15 @@ import warnings
 warnings.filterwarnings('ignore')
 
 seed(39)
+sw_rw_scores_path = 'extra/sw-rw_F1_per_label.pkl'
+sw_rw_labels_path = 'extra/Irregular_Surface_labels.pkl'
 
 #======================>
 #  Utility Functions  >
 #======================>
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# partiç_calib_curve: generate F1 vs C_tr curves per label type for single participant
+# partic_calib_curve: generate F1 vs C_tr curves per label type for single participant
 # in:
 #	-model
 #	-participant features (X)
@@ -136,8 +138,8 @@ def pcc_cv(model, P_X, P_Y, cv=2):
 # -return p_id with associated min_cycles in dict
 
 def all_partic_calib_curve(model,X,Y,P,seed=39):
-	model_cpy = keras_base_model(model)		# TODO move up the chain, in dsts_cv => impacts the model
-	weight_chkpnt = model.get_weights()
+	# model_cpy = keras_base_model(model)		# TODO move up the chain, in dsts_cv => impacts the model
+	# weight_chkpnt = model.get_weights()
 	
 	participants_data = perParticipantDict(X, Y, P)
 
@@ -197,17 +199,17 @@ def all_pcc_cv(model,X,Y,P, cv=2):
 def graph_calib_curve_per_Y(curves, p_id=None, sw=None):
 
 	# get from dataset/labels.npy
-	text_labels = pickle.load(open('graph/Irregular_Surface_labels.pkl','rb'))
+	text_labels = pickle.load(open(sw_rw_labels_path,'rb'))
 
 	if sw is None:
-		sw, rw = pickle.load(open('graph/sw-rw_F1_per_label.pkl','rb'))
+		sw, rw = pickle.load(open(sw_rw_scores_path,'rb'))
 
 		sw_avg_f1_l, sw_std_f1_l = sw
 		rw_avg_f1_l, rw_std_f1_l = rw
 	else:
 		sw_avg_f1_l, sw_std_f1_l = np.mean(sw,axis=0), np.std(sw,axis=0)
 
-		_,rw = pickle.load(open('graph/sw-rw_F1_per_label.pkl','rb'))
+		_,rw = pickle.load(open(sw_rw_scores_path,'rb'))
 		rw_avg_f1_l, rw_std_f1_l = rw
 
 	for i, surface_label in enumerate(text_labels):
@@ -245,7 +247,7 @@ def graph_calib_curve_general(curves, p_id=None, sw=None):
 	# TODO: re-gen. these numbers with large # of folds
 	# take sw & rw as input
 	if sw is None:
-		sw, rw = pickle.load(open('graph/sw-rw_F1_per_label.pkl','rb'))
+		sw, rw = pickle.load(open(sw_rw_scores_path,'rb'))
 
 		sw_avg_f1_l, _ = sw
 		rw_avg_f1_l, _ = rw
@@ -259,7 +261,7 @@ def graph_calib_curve_general(curves, p_id=None, sw=None):
 		sw_avg_f1 = np.mean(sw)
 		sw_std_f1 = np.std(sw)
 
-		_,rw = pickle.load(open('graph/sw-rw_F1_per_label.pkl','rb'))
+		_,rw = pickle.load(open(sw_rw_scores_path,'rb'))
 
 		rw_avg_f1_l, _ = rw
 		rw_avg_f1 = np.mean(rw_avg_f1_l)

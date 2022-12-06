@@ -69,8 +69,8 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 
 # dtst_cv => multiple dataset subj-split seeds; will calib on diff participant
 # calib_cv => multiple calibration rnd-split seeds; will calib on same participants with diff gait cycles
-def PaCalC_F1_cv(dtst_cv=4, calib_cv=4, save=False):
-	save_path = f'graph/PaCalC(dtst_cv={dtst_cv},calib_cv={calib_cv}).pkl'
+def PaCalC_F1_cv(dtst_cv=4, save=False):
+	save_path = f'graph/PaCalC(dtst_cv={dtst_cv}).pkl'
 	# save_path = 'tmp'
 	if os.path.exists(save_path):
 		return save_path
@@ -102,15 +102,15 @@ def PaCalC_F1_cv(dtst_cv=4, calib_cv=4, save=False):
 		report_dict = classification_report(Y_te, y_hat, target_names=list(range(9)), output_dict=True)
 		
 		sw_f1_per_label = []
-		for i in range(9):
-			sw_f1_per_label.append(report_dict[i]['f1-score'])
+		for j in range(9):
+			sw_f1_per_label.append(report_dict[j]['f1-score'])
 		print(sw_f1_per_label)
 		print(np.mean(sw_f1_per_label))
 		sw.append(sw_f1_per_label)
 		#=================
 
 		#=================
-		D = PaCalC.all_pcc_cv(ann, X_te, Y_te, P_te, cv=calib_cv)
+		D = PaCalC.all_partic_calib_curve(ann, X_te, Y_te, P_te, seed=dtst_seed)
 		#=================
 		# or single participant
 		#=================
@@ -201,10 +201,10 @@ def fast_version():
 	single_version()
 
 def med_version():
-	high_tier_version(dtst_cv=2, calib_cv=2)
+	high_tier_version(dtst_cv=2)
 
 def paper_version():
-	high_tier_version(dtst_cv=4, calib_cv=4)
+	high_tier_version(dtst_cv=14)
 
 def minimal_base_train_needed():
 	single_version(disable_base_train=True) # model can master indiv's with no inital training
@@ -231,12 +231,12 @@ def single_version(dtst_seed=214, calib_seed=39):
 	main_graph_indiv_P(run_loc, p_id)
 	per_label_graph_indiv_P(run_loc, p_id)
 
-def high_tier_version(dtst_cv=2, calib_cv=2):
+def high_tier_version(dtst_cv=2):
 	s = time.time()
-	run_loc = PaCalC_F1_cv(dtst_cv=dtst_cv, calib_cv=calib_cv, save=True)
+	run_loc = PaCalC_F1_cv(dtst_cv=dtst_cv, save=True)
 	e = time.time()
 
-	print(f'TIME of PaCalC_F1_cv(d-cv={dtst_cv},c-cv={calib_cv}):'+str(e-s)+'s')
+	print(f'TIME of PaCalC_F1_cv(d-cv={dtst_cv}):'+str(e-s)+'s')
 
 	main_graph_avg_P(run_loc)
 	per_label_graph_avg_P(run_loc)
