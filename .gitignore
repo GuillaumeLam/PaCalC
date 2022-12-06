@@ -129,9 +129,7 @@ dmypy.json
 .pyre/
 
 # Data and generated files
-dataset/data.mat
-dataset/py_compatible_data.mat
-dataset/*.npy
+dataset/*
 
 dataset/cycle1_with_wrist_Normalized.pkl
 cycle1_with_wrist_Normalized.pkl

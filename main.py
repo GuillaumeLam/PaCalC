@@ -1,5 +1,5 @@
+import GaitLab2Go as GL2G
 from extra.subject_wise_split import subject_wise_split
-import extra.GaitLab2Go as GL2G
 
 from load_data import _CACHED_load_surface_data
 import util_functions as PaCalC

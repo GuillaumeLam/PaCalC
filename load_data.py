@@ -6,7 +6,7 @@ import numpy as np
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
-import extra.GaitLab2Go as GL2GO
+import GaitLab2Go as GL2GO
 from extra.subject_wise_split import subject_wise_split
 
 def lda_featuers(x_train,y_train):
