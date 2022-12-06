@@ -19,6 +19,8 @@ There are three version:
 - medium -> 2 dataset folds (used to make sure cross-validation code is running smoothly)
 - paper -> full dataset folds with graphs used in the paper
 
+The main function to utilize is `PaCalC_F1_cv`. This function allows to run cross-validation on the irregular walking surfaces dataset for a generalized calibration curve per label. Onwards, functions are wrappers for the argument parsing & different versions.
+
 ## Re-use of Code
 
 To reuse the code for your personal usage, methods of `util_functions.py` are written to be dataset agnostic. The methods of `main.py` show the usage of the methods for the irregular walking surfaces dataset.

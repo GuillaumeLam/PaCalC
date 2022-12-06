@@ -120,6 +120,46 @@ class TDD_PaCalC(unittest.TestCase):
 			self.assertTrue((x == np.array(X[i::5,:])).all())
 			self.assertTrue((y == np.array([[1,0]]*5+[[0,1]]*5)).all())
 
+	# def test_P_missing_labels():
+	# 	P_X, P_Y = np.random.rand(50,100), np.array([[1,0,0,0,0,0,0,0,0]]*25+[[0,1,0,0,0,0,0,0,0]]*25)
+
+	# 	model = tf.keras.models.Sequential()
+	# 	model.add(tf.keras.layers.Dense(32, input_dim=100, activation='relu'))
+	# 	model.add(tf.keras.layers.Dense(16, activation='relu'))
+	# 	model.add(tf.keras.layers.Dense(P_Y.shape[-1], activation='softmax'))
+	# 	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+	# 	matrix = PaCalC.partic_calib_curve(model, P_X, P_Y)
+
+	# 	matrix = np.array([matrix])
+
+	# 	PaCalC.graph_calib_curve_general(matrix)
+
+	# 	PaCalC.graph_calib_curve_per_Y(matrix)
+
+	# def test_all_missing_labels():
+	# 	X, Y, P = np.random.rand(50,100), np.array([[1,0,0,0,0,0,0,0,0]]*25+[[0,1,0,0,0,0,0,0,0]]*25), np.array([1,2,3,4,5]*10)
+
+	# 	model = tf.keras.models.Sequential()
+	# 	model.add(tf.keras.layers.Dense(32, input_dim=100, activation='relu'))
+	# 	model.add(tf.keras.layers.Dense(16, activation='relu'))
+	# 	model.add(tf.keras.layers.Dense(Y.shape[-1], activation='softmax'))
+	# 	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+	# 	d = PaCalC.all_partic_calib_curve(model, X, Y, P)
+
+	# 	matrix = PaCalC.collapse_P(d)
+
+	# 	PaCalC.graph_calib_curve_general(matrix)
+
+	# 	PaCalC.graph_calib_curve_per_Y(matrix)
+
+	# 	for p_id, p_curves in d.items():
+	# 		print(f'P id: {p_id}')
+	# 		# p_curves = np.array([p_curves])
+	# 		PaCalC.graph_calib_curve_general(np.array([p_curves]), p_id)
+	# 		PaCalC.graph_calib_curve_per_Y(np.array([p_curves]), p_id)
+
 class TestHelperFunc:
 	def make_model():
 		model = tf.keras.models.Sequential()
