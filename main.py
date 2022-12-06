@@ -22,7 +22,7 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 		return save_path
 
 	global _cached_Irregular_Surface_Dataset
-	_cached_Irregular_Surface_Dataset=None
+	_cached_Irregular_Surface_Dataset = None
 
 	X_tr, Y_tr, P_tr, X_te, Y_te, P_te = _CACHED_load_surface_data(dtst_seed, True, split=0.1)
 
@@ -30,7 +30,7 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 
 	# train model on X_tr, Y_tr
 	if not disable_base_train:
-		ann.fit(X_tr,Y_tr,batch_size=512,epochs=50, validation_split=0.1)
+		ann.fit(X_tr, Y_tr, batch_size=512, epochs=50, validation_split=0.1)
 
 	#=================
 	# Get SW curve
@@ -41,7 +41,7 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 	y_hat[np.arange(len(mult_pred)), mult_pred.argmax(1)] = 1
 
 	report_dict = classification_report(Y_te, y_hat, target_names=list(range(9)), output_dict=True)
-	
+
 	sw_f1_per_label = []
 	for i in range(9):
 		sw_f1_per_label.append(report_dict[i]['f1-score'])
@@ -62,10 +62,11 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 	print(D)
 	if save:
 		if not os.path.exists('graph'):
-   			os.makedirs('graph')
-		pickle.dump((D, np.array([sw_f1_per_label])), open(save_path,'wb'))
+			os.makedirs('graph')
+		pickle.dump((D, np.array([sw_f1_per_label])), open(save_path, 'wb'))
 
 	return save_path
+
 
 # dtst_cv => multiple dataset subj-split seeds; will calib on diff participant
 # calib_cv => multiple calibration rnd-split seeds; will calib on same participants with diff gait cycles
@@ -75,21 +76,21 @@ def PaCalC_F1_cv(dtst_cv=4, save=False):
 	if os.path.exists(save_path):
 		return save_path
 
-	dtst_seeds = [randint(0,1000) for _ in range(0,dtst_cv)]
+	dtst_seeds = [randint(0, 1000) for _ in range(0, dtst_cv)]
 
 	out = {}
 	sw = []
 
 	for i, dtst_seed in enumerate(dtst_seeds):
 		global _cached_Irregular_Surface_Dataset
-		_cached_Irregular_Surface_Dataset=None
+		_cached_Irregular_Surface_Dataset = None
 
 		X_tr, Y_tr, P_tr, X_te, Y_te, P_te = _CACHED_load_surface_data(dtst_seed, True, split=0.1)
 
 		ann = make_model(X_tr, Y_tr)
 
 		# train model on X_tr, Y_tr
-		ann.fit(X_tr,Y_tr,batch_size=512,epochs=50, validation_split=0.1)
+		ann.fit(X_tr, Y_tr, batch_size=512, epochs=50, validation_split=0.1)
 
 		#=================
 		# Get SW curve
@@ -100,7 +101,7 @@ def PaCalC_F1_cv(dtst_cv=4, save=False):
 		y_hat[np.arange(len(mult_pred)), mult_pred.argmax(1)] = 1
 
 		report_dict = classification_report(Y_te, y_hat, target_names=list(range(9)), output_dict=True)
-		
+
 		sw_f1_per_label = []
 		for j in range(9):
 			sw_f1_per_label.append(report_dict[j]['f1-score'])
@@ -138,80 +139,88 @@ def PaCalC_F1_cv(dtst_cv=4, save=False):
 
 	if save:
 		if not os.path.exists('graph'):
-   			os.makedirs('graph')
-		pickle.dump((out, sw), open(save_path,'wb'))
+			os.makedirs('graph')
+		pickle.dump((out, sw), open(save_path, 'wb'))
 
 	return save_path
 
 
 def make_model(X_tr, Y_tr):
 	Lab = GL2G.data_processing()
-	hid_layers=(606,303,606) #hidden layers
-	model='classification' #problem type
-	output= Y_tr.shape[-1] #ouput shape 
-	input_shape=X_tr.shape[-1]
-	ann=Lab.ANN(hid_layers=hid_layers,model=model,output=output,input_shape=input_shape,activation_hid='relu') # relu in hidden layers
+	hid_layers = (606, 303, 606)  #hidden layers
+	model = 'classification'  #problem type
+	output = Y_tr.shape[-1]  #ouput shape
+	input_shape = X_tr.shape[-1]
+	ann = Lab.ANN(hid_layers=hid_layers, model=model, output=output, input_shape=input_shape, activation_hid='relu') # relu in hidden layers
 	return ann
 
 
 def main_graph_avg_P(run_loc):
-	D,sw = pickle.load(open(run_loc,'rb'))
+	D, sw = pickle.load(open(run_loc, 'rb'))
 
 	curves = PaCalC.collapse_P(D)
 
 	PaCalC.graph_calib_curve_general(curves, sw=sw)
 
+
 def per_label_graph_avg_P(run_loc):
-	D,sw = pickle.load(open(run_loc,'rb'))
+	D, sw = pickle.load(open(run_loc, 'rb'))
 
 	curves = PaCalC.collapse_P(D)
 
 	PaCalC.graph_calib_curve_per_Y(curves, sw=sw)
 
-def main_graph_indiv_P(run_loc, p_id):
-	D = pickle.load(open(run_loc,'rb'))
 
-	if len(D[p_id].shape)==2:
+def main_graph_indiv_P(run_loc, p_id):
+	D = pickle.load(open(run_loc, 'rb'))
+
+	if len(D[p_id].shape) == 2:
 		p_curves = np.array([D[p_id]])
 	else:
 		p_curves = D[p_id]
 
 	PaCalC.graph_calib_curve_general(p_curves, p_id)
 
-def per_label_graph_indiv_P(run_loc, p_id):
-	D = pickle.load(open(run_loc,'rb'))
 
-	if len(D[p_id].shape)==2:
+def per_label_graph_indiv_P(run_loc, p_id):
+	D = pickle.load(open(run_loc, 'rb'))
+
+	if len(D[p_id].shape) == 2:
 		p_curves = np.array([D[p_id]])
 	else:
 		p_curves = D[p_id]
 
 	PaCalC.graph_calib_curve_per_Y(p_curves, p_id)
 
+
 def graph_per_P(run_loc):
-	D, sw = pickle.load(open(run_loc,'rb'))
+	D, sw = pickle.load(open(run_loc, 'rb'))
 
 	for p_id, p_curves in D.items():
 		print(f'P id: {p_id}')
 		PaCalC.graph_calib_curve_general(p_curves, p_id, sw=sw)
 		PaCalC.graph_calib_curve_per_Y(p_curves, p_id, sw=sw)
 
+
 def fast_version():
 	single_version()
+
 
 def med_version():
 	high_tier_version(dtst_cv=2)
 
+
 def paper_version():
 	high_tier_version(dtst_cv=14)
 
+
 def minimal_base_train_needed():
-	single_version(disable_base_train=True) # model can master indiv's with no inital training
+	single_version(disable_base_train=True)		# model can master indiv's with no inital training
 
 
 def single_version(dtst_seed=214, calib_seed=39):
 	s = time.time()
-	run_loc = PaCalC_F1(dtst_seed=dtst_seed, calib_seed=calib_seed,save=True)
+	run_loc = PaCalC_F1(dtst_seed=dtst_seed, calib_seed=calib_seed, save=True)
 	e = time.time()
 
 	print('TIME of PaCalC_F1:'+str(e-s)+'s')
@@ -230,6 +239,7 @@ def single_version(dtst_seed=214, calib_seed=39):
 	main_graph_indiv_P(run_loc, p_id)
 	per_label_graph_indiv_P(run_loc, p_id)
 
+
 def high_tier_version(dtst_cv=2):
 	s = time.time()
 	run_loc = PaCalC_F1_cv(dtst_cv=dtst_cv, save=True)
@@ -247,12 +257,11 @@ if __name__ == "__main__":
 	parser.add_argument('-v', '--version', type=str, help='Which code version to run [fast, medium, paper]')
 	args = parser.parse_args()
 
-	
 	if args.version == 'fast':
-		fast_version()				
-	elif args.version == 'medium':	
-		med_version()				
-	elif args.version == 'paper':		
-		paper_version()				
+		fast_version()
+	elif args.version == 'medium':
+		med_version()
+	elif args.version == 'paper':
+		paper_version()
 	else:
 		print('Must select version: `-v [fast, med, paper]`')
