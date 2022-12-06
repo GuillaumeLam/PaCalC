@@ -42,9 +42,9 @@ def _CACHED_load_surface_data(seed, *args, **kwargs):
 
 	return X_tr, Y_tr, P_tr, X_te, Y_te, P_te
 
-
+# code taken from `Generalizability of deep learning models for predicting outdoor irregular walking surfaces`
 def load_surface_data(seed, subject_wise, split=0.3):
-	dp=pd.read_pickle('cycle1_with_wrist_Normalized.pkl') #cycle1_with_wrist,cycle1_9surface
+	dp=pd.read_pickle('dataset/cycles_Normalized.pkl') #cycle1_with_wrist,cycle1_9surface
 	Ndata=dp.Ndata
 	for i in range(Ndata['Surface'].shape[0]):
 		Ndata['Surface'][i]=Ndata['Surface'][i][0]
