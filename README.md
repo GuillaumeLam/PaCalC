@@ -4,7 +4,7 @@ Repo for 'insert_paper_title'
 
 ## Dataset
 
-Place the processed dataset from [here](https://drive.google.com/drive/folders/1XiyOS47Vvt_JM0cCqc-efDANtExbP9mG?usp=share_link) in the folder `PaCalC/dataset`
+Run code from repo [here](https://github.com/Vaibhavshahvr7/Surface-classification-Final) to generate the following file. Place the processed dataset from [here](https://drive.google.com/drive/folders/1XiyOS47Vvt_JM0cCqc-efDANtExbP9mG?usp=share_link) in the folder `PaCalC/dataset`.
 
 ## Running Code
 

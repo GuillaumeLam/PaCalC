@@ -138,7 +138,11 @@ def all_partic_calib_curve(model, X, Y, P, seed=39):
 	# repeat partic_calib_curve over all participant
 	for i, p_id in enumerate(participants_data.keys()):
 		model_cpy.set_weights(weight_chkpnt)
-		participants_curves[p_id] = partic_calib_curve(model_cpy, *participants_data[p_id], seed)
+		participants_curves[p_id] = partic_calib_curve(model_cpy, *participants_data[p_id], seed)[np.newaxis, ...]
+
+		print('HERE'*20)
+		print(participants_curves[p_id].shape)
+		print('HERE'*20)
 
 		print('='*30)
 		print(f'P progress: {i+1}/{len(participants_data.keys())}={(i+1)/len(participants_data.keys())*100}%')
@@ -220,9 +224,9 @@ def graph_calib_curve_per_Y(curves, p_id=None, sw=None):
 	plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
 	if p_id is None:
-		plt.suptitle('Averaged F1 vs calibration size per surface types')
+		plt.suptitle('F1 vs calibration size per surface types')
 	else:
-		plt.suptitle(f'Averaged F1 vs calibration size per surface types for P_id:{p_id}')
+		plt.suptitle(f'F1 vs calibration size per surface types for P_id:{p_id}')
 
 	plt.show()
 
@@ -266,9 +270,9 @@ def graph_calib_curve_general(curves, p_id=None, sw=None):
 
 	plt.legend(loc='lower right')
 	if p_id is None:
-		plt.title('Averaged F1 (lin) vs calibration set size (log)')
+		plt.title('F1 vs calibration size (lin vs log) averaged over surface types')
 	else:
-		plt.title(f'F1 vs calibration set size for P_id:{p_id}')
+		plt.title(f'F1 vs calibration size (lin vs log) averaged over surface types for P_id:{p_id}')
 
 	plt.show()
 
