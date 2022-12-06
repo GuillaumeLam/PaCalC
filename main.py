@@ -1,5 +1,5 @@
+import GaitLab2Go as GL2G
 from extra.subject_wise_split import subject_wise_split
-import extra.GaitLab2Go as GL2G
 
 from load_data import _CACHED_load_surface_data
 import util_functions as PaCalC
@@ -154,7 +154,6 @@ def make_model(X_tr, Y_tr):
 	return ann
 
 
-# TODO: return of graph to save
 def main_graph_avg_P(run_loc):
 	D,sw = pickle.load(open(run_loc,'rb'))
 
@@ -286,16 +285,16 @@ def test_all_missing_labels():
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
-	parser.add_argument('-v', '--version', type=str, help='Which code version to run [fast, med, paper]')
+	parser.add_argument('-v', '--version', type=str, help='Which code version to run [fast, medium, paper]')
 	args = parser.parse_args()
 
 	
 	if args.version == 'fast':
-		fast_version()				# ~Xmin		1x1
-	elif args.version == 'med':		#   V x4	
-		med_version()				# ~XXmin	2x2=4
-	elif args.version == 'paper':	#   V x4	
-		paper_version()				# est. ~1h	4x4=16
+		fast_version()				
+	elif args.version == 'medium':	
+		med_version()				
+	elif args.version == 'paper':		
+		paper_version()				
 	elif args.version == 'test':
 		# high_tier_version(dtst_cv=4, calib_cv=1)
 		test_all_missing_labels()

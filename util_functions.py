@@ -30,13 +30,7 @@ sw_rw_labels_path = 'extra/Irregular_Surface_labels.pkl'
 #	-array of F1 vs C_tr per label type; dim:|unique(Y)| x max(|C_tr|)
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-# TODO: 
-# -silence warning if no issue w/ real data
-
 def partic_calib_curve(model, P_X, P_Y, seed=39):
-	# model_cpy = keras_base_model(model)		# TODO move up the chain, in dsts_cv => impacts the model
-	# weight_chkpnt = model.get_weights()
-	# model_cpy.set_weights(weight_chkpnt)
 	f1_lim_threshold=7
 	per_label_dict, min_cycles = perLabelDict(P_X, P_Y) # do stats w/ min_cycles?
 
@@ -138,8 +132,8 @@ def pcc_cv(model, P_X, P_Y, cv=2):
 # -return p_id with associated min_cycles in dict
 
 def all_partic_calib_curve(model,X,Y,P,seed=39):
-	# model_cpy = keras_base_model(model)		# TODO move up the chain, in dsts_cv => impacts the model
-	# weight_chkpnt = model.get_weights()
+	model_cpy = keras_base_model(model)
+	weight_chkpnt = model.get_weights()
 	
 	participants_data = perParticipantDict(X, Y, P)
 
@@ -147,8 +141,8 @@ def all_partic_calib_curve(model,X,Y,P,seed=39):
 
 	# repeat partic_calib_curve over all participant
 	for i,p_id in enumerate(participants_data.keys()):
-		# model_cpy.set_weights(weight_chkpnt)
-		participants_curves[p_id] = partic_calib_curve(model,*participants_data[p_id],seed)
+		model_cpy.set_weights(weight_chkpnt)
+		participants_curves[p_id] = partic_calib_curve(model_cpy,*participants_data[p_id],seed)
 
 		print('='*30)
 		print(f'P progress: {i+1}/{len(participants_data.keys())}={(i+1)/len(participants_data.keys())*100}%')
