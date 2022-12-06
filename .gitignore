@@ -132,11 +132,9 @@ dmypy.json
 dataset/data.mat
 dataset/py_compatible_data.mat
 dataset/*.npy
+dataset/*.pkl
 
 dataset/cycle1_with_wrist_Normalized.pkl
 cycle1_with_wrist_Normalized.pkl
 
 graph/*
-
-*.pkl
-*/*.pkl
