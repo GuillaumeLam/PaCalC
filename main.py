@@ -5,15 +5,12 @@ from load_data import _CACHED_load_surface_data
 import util_functions as PaCalC
 
 import argparse
-import copy
 import numpy as np
 import os
 import pickle
-from random import seed, randint
+from random import randint
 from sklearn.metrics import classification_report
-from sklearn.metrics import f1_score
 import time
-import tensorflow as tf
 
 
 def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False):
@@ -32,9 +29,9 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 	if not disable_base_train:
 		ann.fit(X_tr, Y_tr, batch_size=512, epochs=50, validation_split=0.1)
 
-	#=================
+	# =================
 	# Get SW curve
-	#=================
+	# =================
 	mult_pred = ann.predict(X_te, verbose=0)
 
 	y_hat = np.zeros_like(mult_pred)
@@ -47,17 +44,17 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 		sw_f1_per_label.append(report_dict[i]['f1-score'])
 	print(sw_f1_per_label)
 	print(np.mean(sw_f1_per_label))
-	#=================
+	# =================
 
-	#=================
+	# =================
 	D = PaCalC.all_partic_calib_curve(ann, X_te, Y_te, P_te, calib_seed)
-	#=================
+	# =================
 	# or single participant
-	#=================
+	# =================
 	# participants_dict = PaCalC.perParticipantDict(X_te, Y_te, P_te)
 	# p_id = list(participants_dict.keys())[0]
 	# matrix = PaCalC.partic_calib_curve(ann, *participants_dict[p_id], calib_seed)
-	#=================
+	# =================
 
 	print(D)
 	if save:
@@ -92,9 +89,9 @@ def PaCalC_F1_cv(dtst_cv=4, save=False):
 		# train model on X_tr, Y_tr
 		ann.fit(X_tr, Y_tr, batch_size=512, epochs=50, validation_split=0.1)
 
-		#=================
+		# =================
 		# Get SW curve
-		#=================
+		# =================
 		mult_pred = ann.predict(X_te, verbose=0)
 
 		y_hat = np.zeros_like(mult_pred)
@@ -108,17 +105,17 @@ def PaCalC_F1_cv(dtst_cv=4, save=False):
 		print(sw_f1_per_label)
 		print(np.mean(sw_f1_per_label))
 		sw.append(sw_f1_per_label)
-		#=================
+		# =================
 
-		#=================
+		# =================
 		D = PaCalC.all_partic_calib_curve(ann, X_te, Y_te, P_te, seed=dtst_seed)
-		#=================
+		# =================
 		# or single participant
-		#=================
+		# =================
 		# participants_dict = PaCalC.perParticipantDict(X_te, Y_te, P_te)
 		# p_id = list(participants_dict.keys())[0]
 		# matrix = PaCalC.ppc_cv(ann, *participants_dict[p_id], cv=calib_cv)
-		#=================
+		# =================
 
 		for p_id in D.keys():
 			if p_id not in out:
@@ -147,9 +144,9 @@ def PaCalC_F1_cv(dtst_cv=4, save=False):
 
 def make_model(X_tr, Y_tr):
 	Lab = GL2G.data_processing()
-	hid_layers = (606, 303, 606)  #hidden layers
-	model = 'classification'  #problem type
-	output = Y_tr.shape[-1]  #ouput shape
+	hid_layers = (606, 303, 606)  # hidden layers
+	model = 'classification'  # problem type
+	output = Y_tr.shape[-1]  # ouput shape
 	input_shape = X_tr.shape[-1]
 	ann = Lab.ANN(hid_layers=hid_layers, model=model, output=output, input_shape=input_shape, activation_hid='relu') # relu in hidden layers
 	return ann
@@ -251,6 +248,7 @@ def high_tier_version(dtst_cv=2):
 	per_label_graph_avg_P(run_loc)
 
 	graph_per_P(run_loc)
+
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
