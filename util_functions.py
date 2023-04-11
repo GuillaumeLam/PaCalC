@@ -140,9 +140,9 @@ def all_partic_calib_curve(model, X, Y, P, seed=39):
 		model_cpy.set_weights(weight_chkpnt)
 		participants_curves[p_id] = partic_calib_curve(model_cpy, *participants_data[p_id], seed)[np.newaxis, ...]
 
-		print('HERE'*20)
-		print(participants_curves[p_id].shape)
-		print('HERE'*20)
+		# print('HERE'*20)
+		# print(participants_curves[p_id].shape)
+		# print('HERE'*20)
 
 		print('='*30)
 		print(f'P progress: {i+1}/{len(participants_data.keys())}={(i+1)/len(participants_data.keys())*100}%')
