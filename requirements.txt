@@ -1,10 +1,8 @@
 # python 3
 
-pickle
 numpy
 matplotlib
 pandas 
-glob
 scipy
 tensorflow
 
