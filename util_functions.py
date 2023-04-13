@@ -2,6 +2,7 @@
 
 import copy
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
 import pickle
 from random import seed, randint
@@ -17,7 +18,7 @@ sw_rw_scores_path = 'extra/sw-rw_F1_per_label.pkl'
 sw_rw_labels_path = 'extra/Irregular_Surface_labels.pkl'
 
 #======================>
-#  Utility Functions  >
+#  Utility Functions   >
 #======================>
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -408,6 +409,8 @@ def standard_F1_Ctr_graph(curve, sw_rw, title_label=None, sw_rw_labels=True, log
 
 	if log:
 		plt.xscale('symlog')
+		ax = plt.gca()
+		ax.xaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 
 	if title_label is not None:
 		plt.title(title_label)
