@@ -220,13 +220,15 @@ def graph_calib_curve_per_Y(curves, p_id=None, sw=None):
 		elif i == 7:
 			plt.xlabel('Calibration size')
 
+	# plt.xscale('symlog')
+
 	plt.figlegend()
 	plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
 	if p_id is None:
-		plt.suptitle('F1 vs calibration size per surface types')
+		plt.suptitle('F1 vs calibration size (lin vs log) per surface types')
 	else:
-		plt.suptitle(f'F1 vs calibration size per surface types for P_id:{p_id}')
+		plt.suptitle(f'F1 vs calibration size (lin vs log) per surface types for P_id:{p_id}')
 
 	plt.show()
 
@@ -266,7 +268,7 @@ def graph_calib_curve_general(curves, p_id=None, sw=None):
 	plt.ylabel('F1')
 	plt.xlabel('Calibration size')
 
-	plt.xscale('symlog')
+	# plt.xscale('symlog')
 
 	plt.legend(loc='lower right')
 	if p_id is None:
@@ -374,7 +376,7 @@ def keras_model_cpy(model):
 
 # curve: n x |max(C_tr)|
 # sw_rw: ((sw_avg_f1, sw_std_f1),(rw_avg_f1, rw_std_f1))
-def standard_F1_Ctr_graph(curve, sw_rw, title_label=None, sw_rw_labels=True):
+def standard_F1_Ctr_graph(curve, sw_rw, title_label=None, sw_rw_labels=True, log=True):
 	x_axis = list(range(curve.shape[-1]))
 
 	curve = curve[~np.isnan(curve).any(axis=1)]
@@ -382,7 +384,7 @@ def standard_F1_Ctr_graph(curve, sw_rw, title_label=None, sw_rw_labels=True):
 	avg_calib_f1 = np.nanmean(curve, axis=0)
 	std_calib_f1 = np.nanstd(curve, axis=0)
 
-	plt.plot(avg_calib_f1)
+	plt.plot(avg_calib_f1, label='calibration mean with std' if sw_rw_labels else None)
 
 	plt.fill_between(
 		x_axis,
@@ -403,6 +405,9 @@ def standard_F1_Ctr_graph(curve, sw_rw, title_label=None, sw_rw_labels=True):
 	plt.errorbar(x_axis[-1], rw_avg_f1, ecolor='red', yerr=rw_std_f1, capsize=5)
 
 	plt.grid(linestyle='--', linewidth=0.5)
+
+	if log:
+		plt.xscale('symlog')
 
 	if title_label is not None:
 		plt.title(title_label)
