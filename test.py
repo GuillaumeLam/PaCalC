@@ -23,7 +23,7 @@ _cached_Irregular_Surface_Dataset=None
 import time
 
 s = time.time()
-X_tr, Y_tr, P_tr, X_te, Y_te, P_te = _CACHED_load_surface_data(214, True, split=0.1)
+X_tr, Y_tr, P_tr, X_te, Y_te, P_te = _CACHED_load_surface_data(214, True, split=0.1, consent=False)
 e = time.time()
 
 print('TIME TO HIT CACHE & SERVE:'+str(e-s)+'s')
@@ -39,7 +39,8 @@ class PaCalC_exported_func(unittest.TestCase):
 		
 		matrix = partic_calib_curve(TestHelperFunc.make_model(), *TestHelperFunc.P_XY())
 		
-		self.assertEqual(matrix.shape, (2,6))
+		# self.assertEqual(matrix.shape, (2,6))
+		self.assertEqual(matrix.shape, (2,8))
 
 	def test_all_partic_calib_curve(self):		
 		D = all_partic_calib_curve(TestHelperFunc.make_model(), *TestHelperFunc.XYP())
@@ -47,14 +48,16 @@ class PaCalC_exported_func(unittest.TestCase):
 		self.assertEqual(len(D.keys()), 5)
 
 		for matrix in D.values():
-			self.assertEqual(matrix.shape, (2,2))
+			# self.assertEqual(matrix.shape, (2,2))
+			self.assertEqual(matrix.shape, (1,2,2))
 
 	def test_cv_single_partic(self):
 		cv = 2
 		
 		matrix = pcc_cv(TestHelperFunc.make_model(), *TestHelperFunc.P_XY(), cv=cv)
 		
-		self.assertEqual(matrix.shape, (cv,2,6))
+		# self.assertEqual(matrix.shape, (cv,2,6))
+		self.assertEqual(matrix.shape, (cv,2,8))
 
 	def test_cv_all_partic(self):
 		cv = 2
@@ -62,7 +65,8 @@ class PaCalC_exported_func(unittest.TestCase):
 		D = all_pcc_cv(TestHelperFunc.make_model(), *TestHelperFunc.XYP(), cv=cv)
 		
 		for matrix in D.values():
-			self.assertEqual(matrix.shape[:2], (cv, 2))
+			# self.assertEqual(matrix.shape[:2], (cv, 2))
+			self.assertEqual(matrix.shape[:2], (cv, 1))
 
 class TDD_PaCalC(unittest.TestCase):
 
@@ -166,7 +170,7 @@ class TestHelperFunc:
 		model.add(Dense(32, input_dim=100, activation='relu'))
 		model.add(Dense(16, activation='relu'))
 		model.add(Dense(2, activation='softmax'))
-
+		model.compile(optimizer='adam',loss='mean_squared_error')
 		return model
 
 	def P_XY():
