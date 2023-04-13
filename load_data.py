@@ -37,8 +37,9 @@ def _CACHED_load_surface_data(seed, *args, **kwargs):
 		_cached_Irregular_Surface_Dataset = {}	
 
 	_cached_Irregular_Surface_Dataset[seed] = (X_tr, Y_tr, P_tr, X_te, Y_te, P_te)
-	pickle.dump(_cached_Irregular_Surface_Dataset,open('dataset/DTST:IRREGSURF_NORM_LDA-cache.pkl','wb'))
-	print(f"ADDING SEEDED DATASET-{seed} TO CACHE")
+	if consent:
+		pickle.dump(_cached_Irregular_Surface_Dataset,open('dataset/DTST:IRREGSURF_NORM_LDA-cache.pkl','wb'))
+		print(f"ADDING SEEDED DATASET-{seed} TO CACHE")
 
 	return X_tr, Y_tr, P_tr, X_te, Y_te, P_te
 

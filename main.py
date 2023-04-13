@@ -24,7 +24,7 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 	global _cached_Irregular_Surface_Dataset
 	_cached_Irregular_Surface_Dataset = None
 
-	X_tr, Y_tr, P_tr, X_te, Y_te, P_te = _CACHED_load_surface_data(dtst_seed, True, split=0.1)
+	X_tr, Y_tr, P_tr, X_te, Y_te, P_te = _CACHED_load_surface_data(dtst_seed, True, split=0.1, consent=consent)
 
 	ann = make_model(X_tr, Y_tr)
 
@@ -65,7 +65,7 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 			os.makedirs('graph')
 		pickle.dump((D, np.array([sw_f1_per_label])), open(save_path, 'wb'))
 
-	return save_path
+	return D, np.array([sw_f1_per_label]) # D, sw
 
 
 # dtst_cv => multiple dataset subj-split seeds; will calib on diff participant
@@ -85,7 +85,7 @@ def PaCalC_F1_cv(dtst_cv=4, save=False):
 		global _cached_Irregular_Surface_Dataset
 		_cached_Irregular_Surface_Dataset = None
 
-		X_tr, Y_tr, P_tr, X_te, Y_te, P_te = _CACHED_load_surface_data(dtst_seed, True, split=0.1)
+		X_tr, Y_tr, P_tr, X_te, Y_te, P_te = _CACHED_load_surface_data(dtst_seed, True, split=0.1, consent=consent)
 
 		ann = make_model(X_tr, Y_tr)
 
@@ -142,7 +142,7 @@ def PaCalC_F1_cv(dtst_cv=4, save=False):
 			os.makedirs('graph')
 		pickle.dump((out, sw), open(save_path, 'wb'))
 
-	return save_path
+	return out, sw
 
 
 def make_model(X_tr, Y_tr):
@@ -155,24 +155,24 @@ def make_model(X_tr, Y_tr):
 	return ann
 
 
-def main_graph_avg_P(run_loc):
-	D, sw = pickle.load(open(run_loc, 'rb'))
+def main_graph_avg_P(D,sw):
+	# D, sw = pickle.load(open(run_loc, 'rb'))
 
 	curves = PaCalC.collapse_P(D)
 
 	PaCalC.graph_calib_curve_general(curves, sw=sw)
 
 
-def per_label_graph_avg_P(run_loc):
-	D, sw = pickle.load(open(run_loc, 'rb'))
+def per_label_graph_avg_P(D,sw):
+	# D, sw = pickle.load(open(run_loc, 'rb'))
 
 	curves = PaCalC.collapse_P(D)
 
 	PaCalC.graph_calib_curve_per_Y(curves, sw=sw)
 
 
-def main_graph_indiv_P(run_loc, p_id):
-	D = pickle.load(open(run_loc, 'rb'))
+def main_graph_indiv_P(D, p_id):
+	# D = pickle.load(open(run_loc, 'rb'))
 
 	if len(D[p_id].shape) == 2:
 		p_curves = np.array([D[p_id]])
@@ -182,8 +182,8 @@ def main_graph_indiv_P(run_loc, p_id):
 	PaCalC.graph_calib_curve_general(p_curves, p_id)
 
 
-def per_label_graph_indiv_P(run_loc, p_id):
-	D = pickle.load(open(run_loc, 'rb'))
+def per_label_graph_indiv_P(D, p_id):
+	# D = pickle.load(open(run_loc, 'rb'))
 
 	if len(D[p_id].shape) == 2:
 		p_curves = np.array([D[p_id]])
@@ -193,8 +193,8 @@ def per_label_graph_indiv_P(run_loc, p_id):
 	PaCalC.graph_calib_curve_per_Y(p_curves, p_id)
 
 
-def graph_per_P(run_loc):
-	D, sw = pickle.load(open(run_loc, 'rb'))
+def graph_per_P(D,sw):
+	# D, sw = pickle.load(open(run_loc, 'rb'))
 
 	for p_id, p_curves in D.items():
 		print(f'P id: {p_id}')
@@ -220,13 +220,13 @@ def minimal_base_train_needed():
 
 def single_version(dtst_seed=214, calib_seed=39):
 	s = time.time()
-	run_loc = PaCalC_F1(dtst_seed=dtst_seed, calib_seed=calib_seed, save=True)
+	D,sw = PaCalC_F1(dtst_seed=dtst_seed, calib_seed=calib_seed, save=consent)
 	e = time.time()
 
 	print('TIME of PaCalC_F1:'+str(e-s)+'s')
 
-	main_graph_avg_P(run_loc)
-	per_label_graph_avg_P(run_loc)
+	main_graph_avg_P(D,sw)
+	per_label_graph_avg_P(D,sw)
 
 	print('Select a P_id:')
 
@@ -236,23 +236,42 @@ def single_version(dtst_seed=214, calib_seed=39):
 
 	print(f'P id: {p_id}')
 
-	main_graph_indiv_P(run_loc, p_id)
-	per_label_graph_indiv_P(run_loc, p_id)
+	main_graph_indiv_P(D, p_id)
+	per_label_graph_indiv_P(D, p_id)
 
 
 def high_tier_version(dtst_cv=2):
 	s = time.time()
-	run_loc = PaCalC_F1_cv(dtst_cv=dtst_cv, save=True)
+	out,sw = PaCalC_F1_cv(dtst_cv=dtst_cv, save=consent)
 	e = time.time()
 
 	print(f'TIME of PaCalC_F1_cv(d-cv={dtst_cv}):'+str(e-s)+'s')
 
-	main_graph_avg_P(run_loc)
-	per_label_graph_avg_P(run_loc)
+	main_graph_avg_P(out,sw)
+	per_label_graph_avg_P(out,sw)
 
-	graph_per_P(run_loc)
+	graph_per_P(out,sw)
 
 if __name__ == "__main__":
+
+	# read file for consent if it exists
+	if os.path.isfile('CONSENT.txt'):
+		consent = True
+	else:
+		consent = False
+
+		print('='*30)
+		print('Do we have your consent to write files to your PC? (yes/no)')
+		yes_choices = ['yes', 'y']
+
+		if input().lower() in yes_choices:
+			print('Saving consent choice')
+			with open("CONSENT.txt", "w") as file:
+				file.write('CONSENT=TRUE')
+
+			consent = True
+		print('='*30)
+
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-v', '--version', type=str, help='Which code version to run [fast, medium, paper]')
 	args = parser.parse_args()

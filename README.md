@@ -34,5 +34,10 @@ The method `keras_base_model` will need modification based on your model type.
 
 Additionally, `load_data.py` has a caching mechanism of the datasets for seeds ie. datasets split with a seed will be stored in a file for quicker retrieval later on. 
 
+## Running unit tests
+
+To run the unit tests, run the following command:
+`python test.py`
+
 ## Sources
 - [Generalizability of deep learning models for predicting outdoor irregular walking surfaces](https://doi.org/10.1016/j.jbiomech.2022.111159)
