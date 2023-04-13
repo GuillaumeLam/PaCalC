@@ -19,7 +19,7 @@ import tensorflow as tf
 def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False):
 	save_path = f'graph/PaCalC(dtst_seed={dtst_seed},calib_seed={calib_seed}).pkl'
 	if os.path.exists(save_path):
-		return save_path
+		return pickle.load(open(save_path, 'rb'))
 
 	global _cached_Irregular_Surface_Dataset
 	_cached_Irregular_Surface_Dataset = None
@@ -74,7 +74,7 @@ def PaCalC_F1_cv(dtst_cv=4, save=False):
 	save_path = f'graph/PaCalC(dtst_cv={dtst_cv}).pkl'
 	# save_path = 'tmp'
 	if os.path.exists(save_path):
-		return save_path
+		return pickle.load(open(save_path, 'rb'))
 
 	dtst_seeds = [randint(0, 1000) for _ in range(0, dtst_cv)]
 
