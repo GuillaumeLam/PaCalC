@@ -7,6 +7,10 @@ Repo for 'Mind the gap: The effect of calibration trials on the performance of a
 Place the processed dataset from [here](https://drive.google.com/drive/folders/1XiyOS47Vvt_JM0cCqc-efDANtExbP9mG?usp=share_link) in the folder `PaCalC/dataset`. 
 (To generate the processed dataset, run code from repo [here](https://github.com/Vaibhavshahvr7/Surface-classification-Final). The repo, Surface-classification-Final, is set to private. Access can be granted by contacting the user Vaibhavshahvr7.)
 
+## Install
+
+Python dependencies are located in `requirements.txt`. They can be installed with `pip install -r requirements.txt`. To get matplotlib plotting in linux, you might need to install additional libraries w/ `sudo apt-get install tcl-dev tk-dev python-tk python3-tk` (for Debian systems).
+
 ## Running Code
 
 To run the code:
