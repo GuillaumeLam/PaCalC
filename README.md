@@ -1,6 +1,10 @@
 # Participant Calibration Curve (PaCalC)
 
-Repo for 'Mind the gap: The effect of calibration trials on the performance of a deep-learning model trained on wearable sensor gait data'
+Repo for 'Estimating individual minimum calibration for deep-learning with11
+predictive performance recovery: an example case of gait surface12
+classification from wearable sensor gait data'
+
+The PaCalC toolbox is a set of functions to help users calculate calibration curves of individuals for various datasets collected from individuals.
 
 ## Dataset
 
@@ -25,6 +29,15 @@ There are three version:
 - paper -> full dataset folds with graphs used in the paper
 
 The main function to utilize is `PaCalC_F1_cv`. This function allows to run cross-validation on the irregular walking surfaces dataset for a generalized calibration curve per label. Onwards, functions are wrappers for the argument parsing & different versions.
+
+## Expected Output
+
+The two main outputs of this toolbox are two graphs: 1. A calibration curve averaged over all surfaces. 2. A calibration curve for each surface (9). For both of these figures, the calibration curves mean and standard variance (blue) are displayed and reference points are added: the performance of a model trained with subject-wise split (green) and an other model trained with random-wise split (red). Example graphs are shown here:
+
+![averaged-surfaces](readme_fig/PaCalC(dtst_cv%3D2).png)
+![all-surfaces](readme_fig/PaCalC_all-surfaces(dtst_cv%3D2).png)
+
+Additionally, plotting of these two graphs is performed per participant for potentially further investigation. 
 
 ## Re-use of Code
 
