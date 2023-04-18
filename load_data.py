@@ -20,6 +20,10 @@ def lda_featuers(x_train,y_train):
 def _CACHED_load_surface_data(seed, *args, **kwargs):
 	global _cached_Irregular_Surface_Dataset
 
+	consent = kwargs['consent']
+
+	new_kwargs = {k: v for k, v in kwargs.items() if k not in ["consent"]}
+
 	# caching mechanism
 	if path.exists('dataset/DTST:IRREGSURF_NORM_LDA-cache.pkl'):
 		_cached_Irregular_Surface_Dataset = pickle.load(open('dataset/DTST:IRREGSURF_NORM_LDA-cache.pkl','rb'))
@@ -30,10 +34,10 @@ def _CACHED_load_surface_data(seed, *args, **kwargs):
 			return X_tr, Y_tr, P_tr, X_te, Y_te, P_te
 		else:
 			print(f"DATASET CACHE MISS FOR SEED#{seed}")
-			X_tr, Y_tr, P_tr, X_te, Y_te, P_te = load_surface_data(seed, *args, **kwargs)
+			X_tr, Y_tr, P_tr, X_te, Y_te, P_te = load_surface_data(seed, *args, **new_kwargs)
 	else:
 		print('NO DATASET CACHE')
-		X_tr, Y_tr, P_tr, X_te, Y_te, P_te = load_surface_data(seed, *args, **kwargs)
+		X_tr, Y_tr, P_tr, X_te, Y_te, P_te = load_surface_data(seed, *args, **new_kwargs)
 		_cached_Irregular_Surface_Dataset = {}	
 
 	_cached_Irregular_Surface_Dataset[seed] = (X_tr, Y_tr, P_tr, X_te, Y_te, P_te)
