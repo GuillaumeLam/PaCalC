@@ -16,6 +16,40 @@ from sklearn.metrics import f1_score
 import time
 import tensorflow as tf
 
+def PaCalC_F1_demo():
+	X_tr = np.genfromtxt('demo_dataset/X_tr.csv', delimiter=',')
+	Y_tr = np.genfromtxt('demo_dataset/Y_tr.csv', delimiter=',')
+	P_tr = np.genfromtxt('demo_dataset/P_tr.csv', delimiter=',')
+	X_te = np.genfromtxt('demo_dataset/X_te.csv', delimiter=',')
+	Y_te = np.genfromtxt('demo_dataset/Y_te.csv', delimiter=',')
+	P_te = np.genfromtxt('demo_dataset/P_te.csv', delimiter=',')
+
+	nn = make_ANN(X_tr, Y_tr)
+
+	nn.fit(X_tr, Y_tr, batch_size=512, epochs=50, validation_split=0.1)
+
+	#=================
+	# Get SW curve
+	#=================
+	mult_pred = nn.predict(X_te, verbose=0)
+
+	y_hat = np.zeros_like(mult_pred)
+	y_hat[np.arange(len(mult_pred)), mult_pred.argmax(1)] = 1
+
+	report_dict = classification_report(Y_te, y_hat, target_names=list(range(9)), output_dict=True)
+
+	sw_f1_per_label = []
+	for i in range(9):
+		sw_f1_per_label.append(report_dict[i]['f1-score'])
+	print(sw_f1_per_label)
+	print(np.mean(sw_f1_per_label))
+	#=================
+
+	#=================
+	D = PaCalC.all_partic_calib_curve(nn, X_te, Y_te, P_te)
+
+	return D, np.array([sw_f1_per_label]) # D, sw
+
 
 def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False):
 	save_path = f'graph/PaCalC(dtst_seed={dtst_seed},calib_seed={calib_seed},model={model_type}).pkl'
@@ -26,6 +60,18 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 	_cached_Irregular_Surface_Dataset = None
 
 	X_tr, Y_tr, P_tr, X_te, Y_te, P_te = _CACHED_load_surface_data(dtst_seed, True, split=0.1, consent=consent)
+
+	# # CODE TO GENERATE DEMO DATASET
+	# print(P_te)
+	# print(np.where(P_te[:]==15)[0].shape) # get row index for P=15
+
+	# p_X_te = X_te[np.where(P_te[:]==15)]
+	# p_Y_te = Y_te[np.where(P_te[:]==15)]
+	# p_P_te = P_te[np.where(P_te[:]==15)]
+
+	# np.savetxt('demo_dataset/X_te.csv', p_X_te[:75,:] , delimiter=',')
+	# np.savetxt('demo_dataset/Y_te.csv', p_Y_te[:75,:], delimiter=',')
+	# np.savetxt('demo_dataset/P_te.csv', p_P_te[:75], delimiter=',')
 
 	if model_type == 'ANN':
 		nn = make_ANN(X_tr, Y_tr)
@@ -215,6 +261,18 @@ def graph_per_P(D,sw):
 		PaCalC.graph_calib_curve_general(p_curves, p_id, sw=sw)
 		PaCalC.graph_calib_curve_per_Y(p_curves, p_id, sw=sw)
 
+def demo_version():
+	print('='*30)
+	print('Running demo version which uses minimal dataset in repo')
+	print('='*30)
+	s = time.time()
+	D,sw = PaCalC_F1_demo()
+	e = time.time()
+
+	print('TIME of PaCalC_F1:'+str(e-s)+'s')
+
+	main_graph_avg_P(D,sw)
+	per_label_graph_avg_P(D,sw)
 
 def fast_version():
 	single_version()
@@ -288,7 +346,7 @@ if __name__ == "__main__":
 		print('='*30)
 
 	parser = argparse.ArgumentParser()
-	parser.add_argument('-v', '--version', type=str, help='Which code version to run [fast, medium, paper]')
+	parser.add_argument('-v', '--version', type=str, help='Which code version to run [demo, fast, medium, paper]')
 	parser.add_argument('-m', '--model_type', type=str, help='Which neural network architecture [ANN, CNN]', default='ANN')
 	args = parser.parse_args()
 
@@ -298,7 +356,9 @@ if __name__ == "__main__":
 		print('Must select model architecture: `-m [ANN, CNN]`')
 		sys.exit(1)
 
-	if args.version == 'fast':
+	if args.version == 'demo':
+		demo_version()
+	elif args.version == 'fast':
 		fast_version()
 	elif args.version == 'medium':
 		med_version()
