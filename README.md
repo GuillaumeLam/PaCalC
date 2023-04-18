@@ -42,7 +42,7 @@ The two main outputs of this toolbox are two graphs: 1. A calibration curve aver
 ![averaged-surfaces](readme_fig/PaCalC(dtst_cv%3D2).png)
 ![all-surfaces](readme_fig/PaCalC_all-surfaces(dtst_cv%3D2).png)
 
-Additionally, plotting of these two graphs is performed per participant for potentially further investigation. 
+Additionally, plotting of these two graphs can be performed per participant for potentially further investigation. 
 
 ## Re-use of Code
 
