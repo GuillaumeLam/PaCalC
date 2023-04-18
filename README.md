@@ -1,14 +1,12 @@
 # Participant Calibration Curve (PaCalC)
 
-Repo for 'Estimating individual minimum calibration for deep-learning with11
-predictive performance recovery: an example case of gait surface12
-classification from wearable sensor gait data'
+Repo for 'Estimating individual minimum calibration for deep-learning with predictive performance recovery: an example case of gait surface classification from wearable sensor gait data'
 
-The PaCalC toolbox is a set of functions to help users calculate calibration curves of individuals for various datasets collected from individuals.
+The PaCalC toolbox is a set of functions to help users calculate calibration curves of individuals for various collected datasets.
 
 ## Dataset
 
-Place the processed dataset from [here](https://drive.google.com/drive/folders/1XiyOS47Vvt_JM0cCqc-efDANtExbP9mG?usp=share_link) in the folder `PaCalC/dataset`. 
+Place the processed dataset from [here](https://drive.google.com/drive/folders/1XiyOS47Vvt_JM0cCqc-efDANtExbP9mG?usp=share_link) in the folder `PaCalC/dataset/`. 
 (To generate the processed dataset, run code from repo [here](https://github.com/Vaibhavshahvr7/Surface-classification-Final). The repo, Surface-classification-Final, is set to private. Access can be granted by contacting the user Vaibhavshahvr7.)
 
 ## Install
@@ -20,13 +18,20 @@ Python dependencies are located in `requirements.txt`. They can be installed wit
 To run the code:
 
 ```
-python main.py -v [version]
+python main.py -v [version] -m [model_type]
 ```
 
-There are three version:
+There are multiple version:
+- demo -> generate graphs out of the box, with no additional downloads!
 - fast -> single participant (used to make sure everything is running smoothly)
 - medium -> 2 dataset folds (used to make sure cross-validation code is running smoothly)
 - paper -> full dataset folds with graphs used in the paper
+
+There are two model architechtures:
+- ANN -> feed-forward neural network 
+- CNN -> convolutional neural network
+
+The ANN takes ~1k seconds (or ~16 minutes) and CNN takes ~8k seconds (or ~2.2 hours) to generate the paper figures.
 
 The main function to utilize is `PaCalC_F1_cv`. This function allows to run cross-validation on the irregular walking surfaces dataset for a generalized calibration curve per label. Onwards, functions are wrappers for the argument parsing & different versions.
 
@@ -41,7 +46,7 @@ Additionally, plotting of these two graphs is performed per participant for pote
 
 ## Re-use of Code
 
-To reuse the code for your personal usage, methods of `util_functions.py` are written to be dataset agnostic. The methods of `main.py` show the usage of the methods for the irregular walking surfaces dataset.
+To reuse the code for your personal usage, methods of `util_functions.py` are written to be dataset agnostic, this file/these methods can be copied over to any project. The methods of `main.py` show the usage of the PaCalC methods for the irregular walking surfaces dataset.
 
 The method `keras_base_model` will need modification based on your model type.
 
