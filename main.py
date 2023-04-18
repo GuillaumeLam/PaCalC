@@ -10,6 +10,7 @@ import numpy as np
 import os
 import pickle
 from random import seed, randint
+import sys
 from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score
 import time
@@ -17,7 +18,7 @@ import tensorflow as tf
 
 
 def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False):
-	save_path = f'graph/PaCalC(dtst_seed={dtst_seed},calib_seed={calib_seed}).pkl'
+	save_path = f'graph/PaCalC(dtst_seed={dtst_seed},calib_seed={calib_seed},model={model_type}).pkl'
 	if os.path.exists(save_path):
 		return pickle.load(open(save_path, 'rb'))
 
@@ -26,16 +27,19 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 
 	X_tr, Y_tr, P_tr, X_te, Y_te, P_te = _CACHED_load_surface_data(dtst_seed, True, split=0.1, consent=consent)
 
-	ann = make_model(X_tr, Y_tr)
+	if model_type == 'ANN':
+		nn = make_ANN(X_tr, Y_tr)
+	elif model_type == 'CNN':
+		nn = make_CNN(X_tr, Y_tr)
 
 	# train model on X_tr, Y_tr
 	if not disable_base_train:
-		ann.fit(X_tr, Y_tr, batch_size=512, epochs=50, validation_split=0.1)
+		nn.fit(X_tr, Y_tr, batch_size=512, epochs=50, validation_split=0.1)
 
 	#=================
 	# Get SW curve
 	#=================
-	mult_pred = ann.predict(X_te, verbose=0)
+	mult_pred = nn.predict(X_te, verbose=0)
 
 	y_hat = np.zeros_like(mult_pred)
 	y_hat[np.arange(len(mult_pred)), mult_pred.argmax(1)] = 1
@@ -50,13 +54,13 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 	#=================
 
 	#=================
-	D = PaCalC.all_partic_calib_curve(ann, X_te, Y_te, P_te, calib_seed)
+	D = PaCalC.all_partic_calib_curve(nn, X_te, Y_te, P_te, calib_seed)
 	#=================
 	# or single participant
 	#=================
 	# participants_dict = PaCalC.perParticipantDict(X_te, Y_te, P_te)
 	# p_id = list(participants_dict.keys())[0]
-	# matrix = PaCalC.partic_calib_curve(ann, *participants_dict[p_id], calib_seed)
+	# matrix = PaCalC.partic_calib_curve(nn, *participants_dict[p_id], calib_seed)
 	#=================
 
 	print(D)
@@ -71,7 +75,7 @@ def PaCalC_F1(dtst_seed=214, calib_seed=39, save=False, disable_base_train=False
 # dtst_cv => multiple dataset subj-split seeds; will calib on diff participant
 # calib_cv => multiple calibration rnd-split seeds; will calib on same participants with diff gait cycles
 def PaCalC_F1_cv(dtst_cv=4, save=False):
-	save_path = f'graph/PaCalC(dtst_cv={dtst_cv}).pkl'
+	save_path = f'graph/PaCalC(dtst_cv={dtst_cv},model={model_type}).pkl'
 	# save_path = 'tmp'
 	if os.path.exists(save_path):
 		return pickle.load(open(save_path, 'rb'))
@@ -87,15 +91,18 @@ def PaCalC_F1_cv(dtst_cv=4, save=False):
 
 		X_tr, Y_tr, P_tr, X_te, Y_te, P_te = _CACHED_load_surface_data(dtst_seed, True, split=0.1, consent=consent)
 
-		ann = make_model(X_tr, Y_tr)
+		if model_type == 'ANN':
+			nn = make_ANN(X_tr, Y_tr)
+		elif model_type == 'CNN':
+			nn = make_CNN(X_tr, Y_tr)
 
 		# train model on X_tr, Y_tr
-		ann.fit(X_tr, Y_tr, batch_size=512, epochs=50, validation_split=0.1)
+		nn.fit(X_tr, Y_tr, batch_size=512, epochs=50, validation_split=0.1)
 
 		#=================
 		# Get SW curve
 		#=================
-		mult_pred = ann.predict(X_te, verbose=0)
+		mult_pred = nn.predict(X_te, verbose=0)
 
 		y_hat = np.zeros_like(mult_pred)
 		y_hat[np.arange(len(mult_pred)), mult_pred.argmax(1)] = 1
@@ -111,13 +118,13 @@ def PaCalC_F1_cv(dtst_cv=4, save=False):
 		#=================
 
 		#=================
-		D = PaCalC.all_partic_calib_curve(ann, X_te, Y_te, P_te, seed=dtst_seed)
+		D = PaCalC.all_partic_calib_curve(nn, X_te, Y_te, P_te, seed=dtst_seed)
 		#=================
 		# or single participant
 		#=================
 		# participants_dict = PaCalC.perParticipantDict(X_te, Y_te, P_te)
 		# p_id = list(participants_dict.keys())[0]
-		# matrix = PaCalC.ppc_cv(ann, *participants_dict[p_id], cv=calib_cv)
+		# matrix = PaCalC.ppc_cv(nn, *participants_dict[p_id], cv=calib_cv)
 		#=================
 
 		for p_id in D.keys():
@@ -145,7 +152,7 @@ def PaCalC_F1_cv(dtst_cv=4, save=False):
 	return out, sw
 
 
-def make_model(X_tr, Y_tr):
+def make_ANN(X_tr, Y_tr):
 	Lab = GL2G.data_processing()
 	hid_layers = (606, 303, 606)  #hidden layers
 	model = 'classification'  #problem type
@@ -153,6 +160,13 @@ def make_model(X_tr, Y_tr):
 	input_shape = X_tr.shape[-1]
 	ann = Lab.ANN(hid_layers=hid_layers, model=model, output=output, input_shape=input_shape, activation_hid='relu') # relu in hidden layers
 	return ann
+
+def make_CNN(X_tr, Y_tr):
+	Lab = GL2G.data_processing()
+	output = Y_tr.shape[-1]  #ouput shape
+	input_shape = X_tr.shape[-1]
+	cnn = Lab.CNN_test(input_shape=(input_shape, 1),output_shape=output) # relu in hidden layers
+	return cnn
 
 
 def main_graph_avg_P(D,sw):
@@ -252,6 +266,7 @@ def high_tier_version(dtst_cv=2):
 
 	graph_per_P(out,sw)
 
+
 if __name__ == "__main__":
 
 	# read file for consent if it exists
@@ -274,7 +289,14 @@ if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-v', '--version', type=str, help='Which code version to run [fast, medium, paper]')
+	parser.add_argument('-m', '--model_type', type=str, help='Which neural network architecture [ANN, CNN]', default='ANN')
 	args = parser.parse_args()
+
+	if args.model_type in ['ANN', 'CNN']:
+		model_type = args.model_type
+	else:
+		print('Must select model architecture: `-m [ANN, CNN]`')
+		sys.exit(1)
 
 	if args.version == 'fast':
 		fast_version()
@@ -284,3 +306,4 @@ if __name__ == "__main__":
 		paper_version()
 	else:
 		print('Must select version: `-v [fast, med, paper]`')
+		sys.exit(1)
